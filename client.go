@@ -1,4 +1,4 @@
-package main
+package goquadriga
 
 import (
 	"bytes"
@@ -24,12 +24,6 @@ type Client struct {
 	ApiSecret string
 }
 
-type BaseAuth struct {
-	ApiKey    string `json:"key"`
-	Signature string `json:"signature"`
-	Nonce     string `json:"nonce"`
-}
-
 func NewClient(id string, key string, secret string) *Client {
 	return &Client{
 		RootUrl:   V2URL,
@@ -39,65 +33,14 @@ func NewClient(id string, key string, secret string) *Client {
 	}
 }
 
-type CurrentTrade struct {
-	Ask       string `json:"ask"`
-	Bid       string `json:"bid"`
-	High      string `json:"high"`
-	Last      string `json:"last"`
-	Low       string `json:"low"`
-	Timestamp string `json:"timestamp"`
-	Volume    string `json:"volume"`
-	Vwap      string `json:"vwap"`
-}
-
-type OrderBook struct {
-	Asks      [][]string `json:"asks"`
-	Bids      [][]string `json:"bids"`
-	Timestamp string     `json:"timestamp"`
-}
-
-type AccountBalance struct {
-	CadBalance   string `json:"cad_balance"`
-	BtcBalance   string `json:"btc_balance"`
-	CadReserved  string `json:"cad_reserved"`
-	BtcReserved  string `json:"btc_reserved"`
-	CadAvailable string `json:"cad_available"`
-	BtcAvailable string `json:"btc_available"`
-	Fee          string `json:"fee"`
-}
-
-func main() {
-	cl := NewClient("62915", "zzRDeTjONf", "si&ia0;:G0z2NMK5hpSFh]HQG[wDKFne+G1cQ1ch2")
-	trade, err := cl.getCurrentTradingInfo()
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("Last trade: ", trade.Last, "\nVolume: ", trade.Volume, "\nHigh: ", trade.High, "\nLow: ", trade.Low)
-	}
-
-	orders, err := cl.getOrderBook()
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("Top sell price: ", orders.Asks[0][0], " Top sell amount: ", orders.Asks[0][1])
-	}
-
-	balance, err := cl.postAccountBalance()
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("Current CAD$ balance:", balance.CadBalance, " Current BTC balance:", balance.BtcBalance)
-	}
-}
-
 func (c *Client) URL(res string) string {
 	return fmt.Sprintf("%s%s", c.RootUrl, res)
 }
 
-func (c *Client) getCurrentTradingInfo() (CurrentTrade, error) {
+func (c *Client) GetCurrentTradingInfo() (CurrentTrade, error) {
 	var current CurrentTrade
 
-	body, err := c.Get(c.URL("ticker"))
+	body, err := c.get(c.URL("ticker"))
 	if err != nil {
 		return current, err
 	}
@@ -105,10 +48,10 @@ func (c *Client) getCurrentTradingInfo() (CurrentTrade, error) {
 	return current, err
 }
 
-func (c *Client) getOrderBook() (OrderBook, error) {
+func (c *Client) GetOrderBook() (OrderBook, error) {
 	var orders OrderBook
 
-	body, err := c.Get(c.URL("order_book"))
+	body, err := c.get(c.URL("order_book"))
 	if err != nil {
 		return orders, err
 	}
@@ -116,7 +59,7 @@ func (c *Client) getOrderBook() (OrderBook, error) {
 	return orders, err
 }
 
-func (c *Client) postAccountBalance() (AccountBalance, error) {
+func (c *Client) PostAccountBalance() (AccountBalance, error) {
 	var balance AccountBalance
 
 	auth := c.makeSig()
@@ -126,7 +69,7 @@ func (c *Client) postAccountBalance() (AccountBalance, error) {
 	}
 	fmt.Println(string(payload))
 
-	body, err := c.Post(c.URL("balance"), payload)
+	body, err := c.post(c.URL("balance"), payload)
 	if err != nil {
 		return balance, err
 	}
@@ -134,7 +77,7 @@ func (c *Client) postAccountBalance() (AccountBalance, error) {
 	return balance, nil
 }
 
-func (c *Client) Get(url string) ([]byte, error) {
+func (c *Client) get(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -148,7 +91,7 @@ func (c *Client) Get(url string) ([]byte, error) {
 	return body, nil
 }
 
-func (c *Client) Post(url string, payload []byte) ([]byte, error) {
+func (c *Client) post(url string, payload []byte) ([]byte, error) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 
