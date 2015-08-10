@@ -108,14 +108,14 @@ func (c *Client) PostOpenOrders() (OpenOrdersResponse, error) {
 }
 
 func (c *Client) PostOrderLookup(id string) (LookupOrderResponse, error) {
-	var lookup LookupOrder
+	var lookup OrderId
 	var order []LookupOrderResponse
 	lookup.ID = id
 
 	auth := c.makeSig()
 	payload, err := json.Marshal(struct {
 		*BaseAuth
-		LookupOrder
+		OrderId
 	}{auth, lookup})
 	if err != nil {
 		return order[0], err
@@ -128,6 +128,31 @@ func (c *Client) PostOrderLookup(id string) (LookupOrderResponse, error) {
 	}
 	err = json.Unmarshal(body, &order)
 	return order[0], err
+}
+
+func (c *Client) PostCancelOrder(id string) (bool, error) {
+	var cancel OrderId
+	cancel.ID = id
+
+	auth := c.makeSig()
+	payload, err := json.Marshal(struct {
+		*BaseAuth
+		OrderId
+	}{auth, cancel})
+	if err != nil {
+		return false, err
+	}
+	fmt.Println(string(payload))
+
+	body, err := c.post(c.URL("cancel_order"), payload)
+	if err != nil {
+		return false, err
+	}
+	cancelSuccess, err := strconv.ParseBool(strings.Trim(string(body), "\""))
+	if err != nil {
+		return false, err
+	}
+	return cancelSuccess, err
 }
 
 func (c *Client) get(url string) ([]byte, error) {

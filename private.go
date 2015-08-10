@@ -16,7 +16,7 @@ type AccountBalance struct {
 	Fee          string `json:"fee"`
 }
 
-type LookupOrder struct {
+type OrderId struct {
 	ID string `json:"id"`
 }
 
