@@ -107,6 +107,29 @@ func (c *Client) PostOpenOrders() (OpenOrdersResponse, error) {
 	return orders, nil
 }
 
+func (c *Client) PostOrderLookup(id string) (LookupOrderResponse, error) {
+	var lookup LookupOrder
+	var order []LookupOrderResponse
+	lookup.ID = id
+
+	auth := c.makeSig()
+	payload, err := json.Marshal(struct {
+		*BaseAuth
+		LookupOrder
+	}{auth, lookup})
+	if err != nil {
+		return order[0], err
+	}
+	fmt.Println(string(payload))
+
+	body, err := c.post(c.URL("lookup_order"), payload)
+	if err != nil {
+		return order[0], err
+	}
+	err = json.Unmarshal(body, &order)
+	return order[0], err
+}
+
 func (c *Client) get(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -140,7 +163,7 @@ func (c *Client) post(url string, payload []byte) ([]byte, error) {
 }
 
 func (c *Client) makeSig() *BaseAuth {
-	timestamp := strconv.FormatInt(time.Now().UTC().Unix(), 10)
+	timestamp := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	secretHash := md5.New()
 	secretHash.Write([]byte(c.ApiSecret))
 	key := hex.EncodeToString(secretHash.Sum(nil))
