@@ -89,6 +89,24 @@ func (c *Client) PostAccountBalance() (AccountBalance, error) {
 	return balance, nil
 }
 
+func (c *Client) PostOpenOrders() (OpenOrdersResponse, error) {
+	var orders OpenOrdersResponse
+
+	auth := c.makeSig()
+	payload, err := json.Marshal(auth)
+	if err != nil {
+		return orders, err
+	}
+	fmt.Println(string(payload))
+
+	body, err := c.post(c.URL("open_orders"), payload)
+	if err != nil {
+		return orders, err
+	}
+	err = json.Unmarshal(body, &orders)
+	return orders, nil
+}
+
 func (c *Client) get(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {

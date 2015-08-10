@@ -25,3 +25,14 @@ type Transaction struct {
 	Price  string `json:"price"`
 	Tid    uint   `json:"tid"`
 }
+
+type OpenOrdersResponse []OpenOrder
+
+type OpenOrder struct {
+	Amount   string `json:"amount"`
+	Datetime string `json:"datetime"`
+	ID       string `json:"id"`
+	Price    string `json:"price"`
+	Status   string `json:"status"`
+	Type     string `json:"type"`
+}
