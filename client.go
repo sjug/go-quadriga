@@ -59,6 +59,18 @@ func (c *Client) GetOrderBook() (OrderBook, error) {
 	return orders, err
 }
 
+func (c *Client) GetTransactions() (TransactionResponse, error) {
+	var transactions TransactionResponse
+
+	body, err := c.get(c.URL("transactions"))
+	if err != nil {
+		return transactions, err
+	}
+	err = json.Unmarshal(body, &transactions)
+	fmt.Printf("Results: %v\n", transactions)
+	return transactions, err
+}
+
 func (c *Client) PostAccountBalance() (AccountBalance, error) {
 	var balance AccountBalance
 

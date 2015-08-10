@@ -16,3 +16,12 @@ type OrderBook struct {
 	Bids      [][]string `json:"bids"`
 	Timestamp string     `json:"timestamp"`
 }
+
+type TransactionResponse []Transaction
+
+type Transaction struct {
+	Amount string `json:"amount"`
+	Date   string `json:"date"`
+	Price  string `json:"price"`
+	Tid    uint   `json:"tid"`
+}
