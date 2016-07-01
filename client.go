@@ -3,7 +3,6 @@ package goquadriga
 import (
 	"bytes"
 	"crypto/hmac"
-	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -189,15 +188,11 @@ func (c *Client) post(url string, payload []byte) ([]byte, error) {
 
 func (c *Client) makeSig() *BaseAuth {
 	timestamp := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	secretHash := md5.New()
-	secretHash.Write([]byte(c.ApiSecret))
-	key := hex.EncodeToString(secretHash.Sum(nil))
-	fmt.Println("The secret key is ", key)
 
 	message := strings.Join([]string{timestamp, c.ClientId, c.ApiKey}, "")
 	fmt.Println("The message is ", message)
 
-	sig := hmac.New(sha256.New, []byte(key))
+	sig := hmac.New(sha256.New, []byte(c.ApiSecret))
 	sig.Write([]byte(message))
 
 	base := &BaseAuth{ApiKey: c.ApiKey, Signature: hex.EncodeToString(sig.Sum(nil)), Nonce: timestamp}
